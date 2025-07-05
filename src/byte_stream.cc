@@ -4,15 +4,16 @@ using namespace std;
 
 ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer_( std::string() ) {}
 
-void Writer::push( string data )
+size_t Writer::push( string data )
 {
   // Your code here.
   if ( is_closed() ) {
-    return;
+    return 0;
   }
   uint64_t len_to_push = min( data.size(), available_capacity() );
   buffer_.append( data.substr( 0, len_to_push ) );
   total_bytes_pushed_ += len_to_push;
+  return len_to_push;
 }
 
 void Writer::close()
