@@ -12,15 +12,15 @@ void get_URL( const string& host, const string& path )
   cerr << "Function called: get_URL(" << host << ", " << path << ")\n";
 
   TCPSocket s = TCPSocket();
-  s.connect(Address(host, "80"));
-  s.write("GET " + path + " HTTP/1.1\r\n");
-  s.write("Host: " + host + "\r\n");
-  s.write("Connection: close\r\n");
-  s.write("\r\n");
-  while(true) {
+  s.connect( Address( host, "80" ) );
+  s.write( "GET " + path + " HTTP/1.1\r\n" );
+  s.write( "Host: " + host + "\r\n" );
+  s.write( "Connection: close\r\n" );
+  s.write( "\r\n" );
+  while ( true ) {
     string buf;
-    s.read(buf);
-    if (buf == "") {
+    s.read( buf );
+    if ( buf == "" ) {
       break;
     }
     cout << buf;
