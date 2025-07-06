@@ -65,16 +65,18 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
     if ( it->first + it->second.size() <= current_end ) {
       unassembled_bytes_ -= it->second.size();
       it = unassembled_strs_.erase( it );
-    } else { // merge
-      data += it->second.substr( current_end - it->first );
-      unassembled_bytes_ -= it->second.size();
-      it = unassembled_strs_.erase( it );
+    } else { // drop overlap part
+      if(it->first <= first_index) {
+        return;
+      }else {
+        data.resize( it->first - first_index );
+      }
       break;
     }
   }
-
   unassembled_strs_[first_index] = data;
   unassembled_bytes_ += data.size();
+
 
   // write to byteStream
   auto it_push = unassembled_strs_.find( next_index_ );
