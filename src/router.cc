@@ -20,11 +20,40 @@ void Router::add_route( const uint32_t route_prefix,
        << static_cast<int>( prefix_length ) << " => " << ( next_hop.has_value() ? next_hop->ip() : "(direct)" )
        << " on interface " << interface_num << "\n";
 
-  debug( "unimplemented add_route() called" );
+  // debug( "unimplemented add_route() called" );
+  routing_table_.push_back({route_prefix, prefix_length, next_hop, interface_num});
+}
+void Router::route_one_datagram( InternetDatagram& dgram )
+{
+  const RouteRule* best_match_rule = nullptr;
+  for ( const auto& rule : routing_table_ ) {
+    uint32_t mask = ( rule.prefix_length == 0 ) ? 0 : ( 0xFFFFFFFF << ( 32 - rule.prefix_length ) );
+    if ( ( dgram.header.dst & mask ) == rule.route_prefix ) {
+      if ( best_match_rule == nullptr || rule.prefix_length > best_match_rule->prefix_length ) {
+        best_match_rule = &rule;
+      }
+    }
+  }
+
+  if ( best_match_rule ) {
+    if ( dgram.header.ttl <= 1 ) {
+      return;
+    }
+    dgram.header.ttl--;
+    Address next_hop = best_match_rule->next_hop.value_or( Address::from_ipv4_numeric( dgram.header.dst ) );
+    interface( best_match_rule->interface_num )->send_datagram( dgram, next_hop );
+  }
 }
 
 // Go through all the interfaces, and route every incoming datagram to its proper outgoing interface.
 void Router::route()
 {
-  debug( "unimplemented route() called" );
+  // debug( "unimplemented route() called" );
+  for (auto &interface : interfaces_) {
+    auto queue = interface->datagrams_received();
+    while(queue.size()) {
+      route_one_datagram(queue.front());
+      queue.pop();
+    }
+  }
 }
